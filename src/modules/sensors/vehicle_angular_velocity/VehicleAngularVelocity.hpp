@@ -36,7 +36,6 @@
 #include <lib/conversion/rotation.h>
 #include <lib/mathlib/math/Limits.hpp>
 #include <lib/matrix/matrix/math.hpp>
-#include <lib/mathlib/math/filter/LowPassFilter2pArray.hpp>
 #include <lib/mathlib/math/filter/LowPassFilter2pVector3f.hpp>
 #include <lib/mathlib/math/filter/NotchFilter.hpp>
 #include <px4_platform_common/log.h>
@@ -68,7 +67,7 @@ public:
 private:
 	void Run() override;
 
-	void CheckFilters(const matrix::Vector3f &rates);
+	void CheckFilters();
 	void ParametersUpdate(bool force = false);
 	void SensorBiasUpdate(bool force = false);
 	void SensorCorrectionsUpdate(bool force = false);
@@ -91,8 +90,8 @@ private:
 
 	uORB::Publication<vehicle_angular_velocity_s> _vehicle_angular_velocity_pub{ORB_ID(vehicle_angular_velocity)};
 
-	uORB::Subscription _params_sub{ORB_ID(parameter_update)};
 	uORB::Subscription _estimator_sensor_bias_sub{ORB_ID(estimator_sensor_bias)};
+	uORB::Subscription _params_sub{ORB_ID(parameter_update)};
 	uORB::Subscription _sensor_correction_sub{ORB_ID(sensor_correction)};
 
 	uORB::SubscriptionCallbackWorkItem _sensor_selection_sub{this, ORB_ID(sensor_selection)};
@@ -109,6 +108,8 @@ private:
 	matrix::Vector3f _bias{0.f, 0.f, 0.f};
 	matrix::Vector3f _offset{0.f, 0.f, 0.f};
 	matrix::Vector3f _scale{1.f, 1.f, 1.f};
+
+	matrix::Vector3f _previous_sample{0.f, 0.f, 0.f};
 
 	hrt_abstime _last_publish{0};
 	hrt_abstime _filter_check_last{0};
